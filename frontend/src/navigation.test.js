@@ -1,0 +1,120 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+
+import { hashForSection, matchesSearch, sectionFromHash } from "./navigation.js";
+import { collectionViewState, sectionData, snapshotSections } from "./viewer-data.js";
+
+test("hash navigation stays inside the viewer sections", () => {
+  assert.equal(sectionFromHash("#/skills"), "episodes");
+  assert.equal(sectionFromHash("#/wiki/local/pages/example.md"), "wiki");
+  assert.equal(sectionFromHash("#library?artifact=a"), "library");
+  assert.equal(sectionFromHash("#/work"), "episodes");
+  assert.equal(sectionFromHash("#/unknown"), "episodes");
+  assert.equal(hashForSection("system"), "#/system");
+  assert.equal(hashForSection("admin"), "#/episodes");
+});
+
+test("search matches labels and metadata without case sensitivity", () => {
+  assert.equal(matchesSearch(["Evidence Review", "fundamental-analyst"], "FUNDAMENTAL"), true);
+  assert.equal(matchesSearch(["Evidence Review"], "forecast"), false);
+  assert.equal(matchesSearch([], ""), true);
+});
+
+test("viewer data accepts only the current snapshot contract", () => {
+  const sections = snapshotSections({
+    generated_at: "2026-07-11T00:00:00Z",
+    sections: {
+      strategies: { ok: true, data: [{ name: "strategy-quality" }] },
+      optional_skills: { ok: true, data: { optional_skills: [{ name: "quality-check" }] } },
+      failed: { ok: false, error: { message: "unavailable" } },
+    },
+  });
+  assert.deepEqual(sectionData(sections, "strategies"), [{ name: "strategy-quality" }]);
+  assert.deepEqual(sectionData(sections, "optional_skills"), { optional_skills: [{ name: "quality-check" }] });
+  assert.equal(sectionData(sections, "failed"), undefined);
+  assert.throws(() => snapshotSections({ state: { strategies: [] } }), /canonical sections object/);
+});
+
+test("collection states never present an error as an empty result", () => {
+  assert.equal(collectionViewState({ loading: true, error: "", count: 0 }), "loading");
+  assert.equal(collectionViewState({ loading: false, error: "unavailable", count: 0 }), "error");
+  assert.equal(collectionViewState({ loading: false, error: "", count: 0 }), "empty");
+  assert.equal(collectionViewState({ loading: true, error: "", count: 3 }), "ready");
+});
+
+test("light theme secondary text keeps normal-text contrast", async () => {
+  const css = await readFile(new URL("./styles.css", import.meta.url), "utf8");
+  const light = css.match(/:root\s*\{[\s\S]*?--ink-3:\s*(#[0-9a-f]{6})/i)?.[1];
+  assert.ok(light);
+  assert.ok(contrast(light, "#f4f3ee") >= 4.5);
+});
+
+test("narrow detail transitions preserve keyboard focus", async () => {
+  const [library, wiki] = await Promise.all([
+    readFile(new URL("./features/LibraryPage.tsx", import.meta.url), "utf8"),
+    readFile(new URL("./features/WikiPage.tsx", import.meta.url), "utf8"),
+  ]);
+  assert.match(library, /readerRef\.current\?\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(library, /indexRef\.current\?\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(wiki, /setQuery\(""\)/);
+  assert.match(wiki, /hashKey !== selectedKey/);
+});
+
+test("workspace switching returns focus to the updated main view", async () => {
+  const app = await readFile(new URL("./App.tsx", import.meta.url), "utf8");
+  assert.match(app, /loadState\(\)\.finally\(\(\) => requestAnimationFrame\(\(\) => mainRef\.current\?\.focus\(\{ preventScroll: true \}\)\)\)/);
+});
+
+test("episode detail exposes lifecycle records through a keyboard button", async () => {
+  const episodes = await readFile(new URL("./features/EpisodesPage.tsx", import.meta.url), "utf8");
+  assert.match(episodes, /aria-pressed=\{selected === id\}/);
+  assert.doesNotMatch(episodes, /<Card[^>]+onClick=/);
+  for (const heading of [
+    "Judgment snapshots",
+    "User adoption",
+    "Forecast records",
+    "Locked process reviews",
+    "Postmortems",
+    "Lessons",
+  ]) assert.match(episodes, new RegExp(heading));
+});
+
+test("half-width desktop uses the compact workspace and single-pane reader layout", async () => {
+  const [css, app] = await Promise.all([
+    readFile(new URL("./styles.css", import.meta.url), "utf8"),
+    readFile(new URL("./App.tsx", import.meta.url), "utf8"),
+  ]);
+  const compactStart = css.indexOf("@media (max-width: 1099px)");
+  const mobileStart = css.indexOf("@media (max-width: 700px)");
+  assert.match(css, /\.section-host\s*\{\s*height:\s*100%;\s*min-height:\s*0/);
+  assert.ok(compactStart >= 0 && mobileStart > compactStart);
+  const compact = css.slice(compactStart, mobileStart);
+  assert.match(compact, /\.viewer-layout\s*\{\s*display:\s*block/);
+  assert.match(compact, /\.workspace-mobile-select\s*\{\s*display:\s*grid/);
+  assert.match(compact, /\.library-layout, \.wiki-layout\s*\{\s*display:\s*block/);
+  assert.match(compact, /\.artifact-reader, \.wiki-reader\s*\{\s*display:\s*none/);
+  assert.doesNotMatch(compact, /--header-height:\s*118px/);
+});
+
+test("the app exposes no work execution surface", async () => {
+  const [app, shell] = await Promise.all([
+    readFile(new URL("./App.tsx", import.meta.url), "utf8"),
+    readFile(new URL("./ViewerShell.tsx", import.meta.url), "utf8"),
+  ]);
+  assert.doesNotMatch(app, /run_start|run_preview|follow-up|WorkPage|mutation\(/i);
+  assert.doesNotMatch(app, /Read only|Workspace viewer|Registered/);
+  assert.match(shell, /@blueprintjs\/core/);
+  assert.match(shell, /Workspace/);
+  assert.doesNotMatch(app, /SkillsPage|id: "skills"/);
+});
+
+function contrast(left, right) {
+  const luminance = (color) => {
+    const channels = color.match(/[0-9a-f]{2}/gi).map((value) => Number.parseInt(value, 16) / 255);
+    const linear = channels.map((value) => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+  };
+  const [lighter, darker] = [luminance(left), luminance(right)].sort((a, b) => b - a);
+  return (lighter + 0.05) / (darker + 0.05);
+}

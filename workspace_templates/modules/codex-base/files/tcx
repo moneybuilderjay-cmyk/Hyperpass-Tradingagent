@@ -1,0 +1,39 @@
+#!/usr/bin/env sh
+set -eu
+
+TRADINGCODEX_ROOT=$(CDPATH= cd -P "$(dirname "$0")" && pwd)
+export TRADINGCODEX_WORKSPACE_ROOT="$TRADINGCODEX_ROOT"
+if [ -z "${TRADINGCODEX_HOME:-}" ]; then
+  export TRADINGCODEX_HOME={{TRADINGCODEX_HOME_SHELL}}
+  export TRADINGCODEX_HOME_SOURCE={{TRADINGCODEX_HOME_SOURCE_SHELL}}
+elif [ -z "${TRADINGCODEX_HOME_SOURCE:-}" ]; then
+  export TRADINGCODEX_HOME_SOURCE=environment_override
+fi
+if [ -z "${TRADINGCODEX_SERVICE_ADDR:-}" ]; then
+  export TRADINGCODEX_SERVICE_ADDR={{TRADINGCODEX_SERVICE_ADDR_SHELL}}
+fi
+{{TRADINGCODEX_DB_ENV_SHELL}}
+if [ "$(pwd -P)" != "$TRADINGCODEX_ROOT" ]; then
+  cd "$TRADINGCODEX_ROOT"
+fi
+
+run_python_launcher() {
+  candidate="$1"
+  shift
+  if command -v "$candidate" >/dev/null 2>&1 && "$candidate" -c 'import sys; raise SystemExit(not ((3, 11) <= sys.version_info < (3, 15)))' >/dev/null 2>&1; then
+    exec "$candidate" "$TRADINGCODEX_ROOT/.tradingcodex/cli.py" "$@"
+  fi
+}
+
+if [ -n "${TRADINGCODEX_PYTHON:-}" ]; then
+  if ! "$TRADINGCODEX_PYTHON" -c 'import sys; raise SystemExit(not ((3, 11) <= sys.version_info < (3, 15)))' >/dev/null 2>&1; then
+    echo "tcx: TRADINGCODEX_PYTHON must be a working Python 3.11 through 3.14 interpreter." >&2
+    exit 1
+  fi
+  exec "$TRADINGCODEX_PYTHON" "$TRADINGCODEX_ROOT/.tradingcodex/cli.py" "$@"
+fi
+run_python_launcher {{TRADINGCODEX_PYTHON_SHELL}} "$@"
+run_python_launcher python3 "$@"
+run_python_launcher python "$@"
+
+{{TRADINGCODEX_PACKAGE_RUNNER_FALLBACK_SHELL}}

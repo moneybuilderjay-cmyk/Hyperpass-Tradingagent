@@ -1,0 +1,26 @@
+{
+  "id": "tradingcodex-mcp",
+  "description": "TradingCodex MCP enforcement boundary for analysis, approval, connector rendering and DB state, and read-only order status tools.",
+  "requires": {
+    "modules": [
+      "codex-base",
+      "enforcement-guardrails",
+      "audit"
+    ]
+  },
+  "provides": {
+    "capabilities": [
+      "mcp.tradingcodex.simulate_policy",
+      "mcp.tradingcodex.run_order_checks",
+      "mcp.tradingcodex.request_order_approval",
+      "mcp.tradingcodex.validate_approval_receipt",
+      "mcp.tradingcodex.get_order_status",
+      "mcp.tradingcodex.get_portfolio_snapshot",
+      "mcp.tradingcodex.render_broker_connector_scaffold",
+      "mcp.tradingcodex.register_broker_connector",
+      "mcp.tradingcodex.validate_broker_connector_build",
+      "mcp.tradingcodex.record_audit_event"
+    ]
+  },
+  "conflicts": []
+}

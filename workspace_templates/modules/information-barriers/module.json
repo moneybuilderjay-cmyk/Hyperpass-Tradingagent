@@ -1,0 +1,19 @@
+{
+  "id": "information-barriers",
+  "description": "Research/report roots used behind role-scoped permission, MCP, policy, execution, and secret walls.",
+  "requires": {
+    "modules": [
+      "codex-base",
+      "fixed-subagents"
+    ]
+  },
+  "provides": {
+    "capabilities": [
+      "information_barrier.research_wall",
+      "information_barrier.execution_wall",
+      "information_barrier.policy_wall",
+      "information_barrier.secret_wall"
+    ]
+  },
+  "conflicts": []
+}

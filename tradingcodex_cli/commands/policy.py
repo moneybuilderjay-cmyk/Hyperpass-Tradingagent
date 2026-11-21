@@ -1,0 +1,20 @@
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+from tradingcodex_service.mcp_runtime import call_mcp_tool
+from tradingcodex_cli.commands.utils import _option_value, print_json
+
+def policy(root: Path, argv: list[str]) -> None:
+    if not argv or argv[0] != "simulate":
+        raise ValueError("Usage: tcx policy simulate --principal <id> --action <action> --resource <resource>")
+    args = argv[1:]
+    result = call_mcp_tool(root, "simulate_policy", {
+        "principal_id": _option_value(args, "--principal") or "unknown",
+        "action": _option_value(args, "--action") or "unknown",
+        "resource": _option_value(args, "--resource") or "*",
+    })
+    print_json(result)
+    if result.get("decision") != "allow":
+        sys.exit(1)

@@ -1,0 +1,335 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TradingCodex Research Artifact Frontmatter",
+  "$defs": {
+    "antiOverfitCheck": {
+      "type": "object",
+      "required": ["status", "reason", "evidence_refs"],
+      "properties": {
+        "status": { "type": "string", "enum": ["pass", "fail", "not_applicable"] },
+        "reason": { "type": "string", "minLength": 1 },
+        "evidence_refs": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      },
+      "additionalProperties": false
+    },
+    "thesisLifecycle": {
+      "type": "object",
+      "required": ["state"],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": ["exploring", "testing", "validated", "rejected", "monitoring"]
+        },
+        "evidence_refs": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "evidence_run_card": { "type": ["object", "string"] },
+        "evidence_run_cards": { "type": "array" },
+        "validation_card": { "type": ["object", "string"] },
+        "validation_cards": { "type": "array" },
+        "reviewer_acceptance": { "type": ["object", "string"] },
+        "invalidation_note": { "type": "string", "minLength": 1 },
+        "monitoring_artifact": { "type": ["object", "string"] },
+        "review_cadence": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "type": "object",
+  "required": [
+    "artifact_id",
+    "artifact_type",
+    "universe",
+    "role",
+    "title",
+    "source_as_of",
+    "readiness_label",
+    "context_summary",
+    "handoff_state",
+    "confidence",
+    "missing_evidence",
+    "next_recipient",
+    "blocked_actions",
+    "source_snapshot_ids"
+  ],
+  "properties": {
+    "artifact_id": { "type": "string" },
+    "artifact_type": { "type": "string" },
+    "universe": { "type": "string" },
+    "workflow_type": { "type": "string" },
+    "role": { "type": "string" },
+    "symbol": { "type": "string" },
+    "title": { "type": "string" },
+    "source_as_of": { "type": "string" },
+    "readiness_label": { "type": "string" },
+    "context_summary": { "type": "string", "maxLength": 1200 },
+    "reader_summary": { "type": "string", "maxLength": 800 },
+    "handoff_state": { "type": "string", "enum": ["accepted", "revise", "blocked", "waiting"] },
+    "confidence": { "type": ["string", "number"] },
+    "missing_evidence": { "type": "array" },
+    "next_recipient": { "type": "string" },
+    "next_action": { "type": "string" },
+    "blocked_actions": { "type": "array" },
+    "source_snapshot_ids": { "type": "array", "items": { "type": "string" } },
+    "source_snapshot_hashes": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+    },
+    "calculation_run_ids": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "calculation_run_hashes": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+    },
+    "calculation_reuse_origins": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["original_run_id", "original_run_sha256"],
+        "properties": {
+          "original_run_id": { "type": "string", "minLength": 1 },
+          "original_run_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "workflow_run_id": { "type": "string", "minLength": 1 },
+    "producer_role": { "type": "string", "minLength": 1 },
+    "artifact_schema_version": { "const": 1 },
+    "input_artifact_ids": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "input_artifact_hashes": {
+      "oneOf": [
+        { "type": "object", "additionalProperties": { "type": "string" } },
+        { "type": "array", "items": { "type": "string" } }
+      ]
+    },
+    "strategy_name": { "type": "string" },
+    "strategy_hash": { "type": "string" },
+    "investment_brain_id": { "type": "string" },
+    "investment_brain_version": { "type": "string" },
+    "investment_brain_content_digest": { "type": "string" },
+    "investor_context_applied": { "type": "boolean" },
+    "investor_context_hash": { "type": "string" },
+    "knowledge_cutoff": { "type": "string" },
+    "forecast_required": { "type": "boolean" },
+    "decision_quality_required": { "type": "boolean" },
+    "investor_context_gate_required": { "type": "boolean" },
+    "forecast_allowed": { "type": "boolean" },
+    "forecast_block_reason": { "type": "string" },
+    "forecast_target": { "type": "string" },
+    "forecast_horizon": { "type": "string" },
+    "probability": {},
+    "probability_range": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": { "type": "number", "minimum": 0, "maximum": 1 },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        { "type": "string", "pattern": "^[0-9]+(?:\\.[0-9]+)?%?\\s*-\\s*[0-9]+(?:\\.[0-9]+)?%?$" }
+      ]
+    },
+    "base_rate": { "type": "object" },
+    "missing_base_rate_note": { "type": "string" },
+    "evidence_ids": { "type": "array" },
+    "contrary_evidence": { "type": "array" },
+    "resolution_source": { "type": "string" },
+    "review_date": { "type": "string" },
+    "update_triggers": { "type": "array" },
+    "invalidation_conditions": { "type": "array" },
+    "source_trust_notes": { "type": "array" },
+    "scenario_cases": { "type": "array" },
+    "scenario_summary": { "type": "string" },
+    "thesis_lifecycle": { "$ref": "#/$defs/thesisLifecycle" },
+    "current_price_as_of": { "type": "string" },
+    "market_anchor_as_of": { "type": "string" },
+    "investor_context_gaps": { "type": "array" },
+    "anti_overfit_required": { "type": "boolean" },
+    "anti_overfit_checks": {
+      "type": "object",
+      "required": [
+        "leakage",
+        "survivorship_bias",
+        "data_snooping",
+        "out_of_sample",
+        "walk_forward_consistency",
+        "monte_carlo_permutation",
+        "bootstrap_sharpe_ci",
+        "cost_assumptions",
+        "capacity",
+        "live_friction"
+      ],
+      "properties": {
+        "leakage": { "$ref": "#/$defs/antiOverfitCheck" },
+        "survivorship_bias": { "$ref": "#/$defs/antiOverfitCheck" },
+        "data_snooping": { "$ref": "#/$defs/antiOverfitCheck" },
+        "out_of_sample": { "$ref": "#/$defs/antiOverfitCheck" },
+        "walk_forward_consistency": { "$ref": "#/$defs/antiOverfitCheck" },
+        "monte_carlo_permutation": { "$ref": "#/$defs/antiOverfitCheck" },
+        "bootstrap_sharpe_ci": { "$ref": "#/$defs/antiOverfitCheck" },
+        "cost_assumptions": { "$ref": "#/$defs/antiOverfitCheck" },
+        "capacity": { "$ref": "#/$defs/antiOverfitCheck" },
+        "live_friction": { "$ref": "#/$defs/antiOverfitCheck" }
+      },
+      "additionalProperties": false
+    },
+    "follow_up_requests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["trigger", "suggested_role", "question", "reason", "materiality"],
+        "properties": {
+          "trigger": {
+            "type": "string",
+            "enum": [
+              "coverage_gap",
+              "freshness_gap",
+              "contradiction",
+              "material_driver",
+              "assumption_change",
+              "method_gap",
+              "scope_boundary",
+              "forecast_gap",
+              "investor_context_gap"
+            ]
+          },
+          "suggested_role": {
+            "type": "string",
+            "enum": [
+              "fundamental-analyst",
+              "technical-analyst",
+              "news-analyst",
+              "macro-analyst",
+              "instrument-analyst",
+              "valuation-analyst",
+              "portfolio-manager",
+              "risk-manager",
+              "judgment-reviewer"
+            ]
+          },
+          "question": { "type": "string" },
+          "reason": { "type": "string" },
+          "materiality": { "type": "string", "enum": ["low", "medium", "high"] },
+          "requested_by_role": { "type": "string" },
+          "created_at": { "type": "string" },
+          "source_artifact_id": { "type": "string" },
+          "source_artifact_path": { "type": "string" },
+          "source_artifact_version": { "type": "integer" },
+          "source_artifact_content_hash": { "type": "string" },
+          "trigger_evidence_refs": { "type": "array" },
+          "required_inputs": { "type": "array" },
+          "suggested_consent_posture": {
+            "type": "string",
+            "enum": ["no_consent_expected", "consent_required", "unknown"]
+          },
+          "blocked_actions": { "type": "array" }
+        },
+        "not": {
+          "anyOf": [
+            { "required": ["within_current_lane"] },
+            { "required": ["requires_user_consent"] }
+          ]
+        },
+        "additionalProperties": true
+      }
+    },
+    "improvements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["improvement_type", "improvement", "reason"],
+        "properties": {
+          "improvement_type": {
+            "type": "string",
+            "enum": [
+              "evidence_gap",
+              "source_quality",
+              "thesis_update",
+              "assumption_error",
+              "valuation_sensitivity",
+              "forecast_calibration",
+              "risk_miss",
+              "portfolio_context_gap",
+              "decision_readiness",
+              "contradiction"
+            ]
+          },
+          "improvement": { "type": "string" },
+          "reason": { "type": "string" },
+          "materiality": { "type": "string", "enum": ["low", "medium", "high"] },
+          "suggested_role": {
+            "type": "string",
+            "enum": [
+              "head-manager",
+              "fundamental-analyst",
+              "technical-analyst",
+              "news-analyst",
+              "macro-analyst",
+              "instrument-analyst",
+              "valuation-analyst",
+              "portfolio-manager",
+              "risk-manager",
+              "judgment-reviewer"
+            ]
+          },
+          "applies_to": { "type": "array" },
+          "evidence_refs": { "type": "array" },
+          "blocked_actions": { "type": "array" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "version": { "type": "integer" },
+    "content_hash": { "type": "string" },
+    "workspace_native": { "type": "boolean" },
+    "created_by": { "type": "string" }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "anti_overfit_required": { "const": true } },
+        "required": ["anti_overfit_required"]
+      },
+      "then": { "required": ["anti_overfit_checks"] }
+    },
+    {
+      "if": {
+        "properties": {
+          "handoff_state": { "const": "accepted" },
+          "artifact_type": { "const": "synthesis_report" }
+        },
+        "required": ["handoff_state", "artifact_type"]
+      },
+      "then": {
+        "required": [
+          "workflow_run_id",
+          "producer_role",
+          "artifact_schema_version",
+          "content_hash",
+          "input_artifact_ids",
+          "input_artifact_hashes"
+        ]
+      },
+      "else": {
+        "if": { "properties": { "handoff_state": { "const": "accepted" } }, "required": ["handoff_state"] },
+        "then": {
+          "required": [
+            "workflow_run_id",
+            "producer_role",
+            "artifact_schema_version",
+            "content_hash",
+            "input_artifact_ids",
+            "input_artifact_hashes"
+          ]
+        }
+      }
+    }
+  ],
+  "additionalProperties": true
+}

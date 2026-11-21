@@ -1,0 +1,6 @@
+interface:
+  display_name: "TCX Strategy"
+  short_description: "Author strategies in a scoped management turn"
+  default_prompt: "$tcx-strategy\nCreate or update the specified user-approved strategy skill as a draft unless activation is explicit."
+policy:
+  allow_implicit_invocation: false

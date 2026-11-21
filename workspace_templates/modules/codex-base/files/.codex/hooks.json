@@ -1,0 +1,66 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{TRADINGCODEX_HOOK_COMMAND_JSON_INNER}} session-start",
+            "timeout": 10,
+            "statusMessage": "Preparing TradingCodex session context"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{TRADINGCODEX_HOOK_COMMAND_JSON_INNER}} pre-tool-use",
+            "timeout": 10,
+            "statusMessage": "Checking TradingCodex tool policy"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": ".*exec_command|.*write_stdin|mcp__tradingcodex__(use_order_turn_grant|manage_investment_brain|manage_strategy|register_broker_connector|validate_broker_connector_build)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{TRADINGCODEX_HOOK_COMMAND_JSON_INNER}} permission-request",
+            "timeout": 10,
+            "statusMessage": "Checking TradingCodex order effect"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{TRADINGCODEX_HOOK_COMMAND_JSON_INNER}} user-prompt-submit",
+            "timeout": 600,
+            "statusMessage": "Checking TradingCodex turn safety"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{TRADINGCODEX_HOOK_COMMAND_JSON_INNER}} stop",
+            "timeout": 30,
+            "statusMessage": "Validating TradingCodex artifacts"
+          }
+        ]
+      }
+    ]
+  }
+}

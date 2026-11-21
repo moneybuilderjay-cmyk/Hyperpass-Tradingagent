@@ -1,0 +1,17 @@
+include LICENSE
+include NOTICE
+include CONTRIBUTING.md
+include CHANGELOG.md
+include TRADEMARKS.md
+include installation.md
+include install.sh
+recursive-include assets *
+recursive-include docs *
+recursive-include frontend *.css *.html *.json *.js *.ts *.tsx
+recursive-include workspace_templates *
+recursive-include workspace_templates .*
+recursive-include tradingcodex_service/static *
+include tradingcodex_cli/calculation-runtime-lock.json
+include tradingcodex_cli/calculation-runtime-requirements.txt
+recursive-exclude frontend/node_modules *
+global-exclude *.py[cod]

@@ -1,0 +1,6 @@
+interface:
+  display_name: "TCX Workflow"
+  short_description: "Dynamically coordinate a Codex-native investment team"
+  default_prompt: "Use $tcx-workflow to interpret the request, dynamically coordinate the smallest useful fixed-role team, and synthesize authenticated artifacts."
+policy:
+  allow_implicit_invocation: true

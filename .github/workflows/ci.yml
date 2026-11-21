@@ -1,0 +1,80 @@
+name: CI (no deploy)
+run-name: CI checks only (no deploy) - ${{ github.ref_name }}
+
+on:
+  pull_request:
+    paths-ignore:
+      - guidebook/**
+      - docs/**
+      - assets/**
+      - "*.md"
+      - .github/workflows/deploy-user-guide.yml
+  push:
+    branches:
+      - main
+      - develop
+    paths-ignore:
+      - guidebook/**
+      - docs/**
+      - assets/**
+      - "*.md"
+      - .github/workflows/deploy-user-guide.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: Python and Django gates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install development dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]" uv
+
+      - name: Run source and framework gates
+        run: |
+          pytest
+          python manage.py check
+          python manage.py makemigrations --check --dry-run
+          python -m compileall tradingcodex_cli tradingcodex_service apps tests
+
+  frontend:
+    name: Frontend gates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Test and build React workbench
+        run: |
+          npm ci --prefix frontend
+          npm test --prefix frontend
+          npm run build --prefix frontend
+          git diff --exit-code -- tradingcodex_service/static/tradingcodex_web

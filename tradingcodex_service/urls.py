@@ -1,0 +1,32 @@
+from django.contrib import admin
+from django.templatetags.static import static
+from django.urls import path
+from django.views.generic import RedirectView
+
+from tradingcodex_service import viewer_api, web
+from tradingcodex_service.api import api
+
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("api/viewer/", viewer_api.snapshot, name="viewer-snapshot"),
+    path("api/viewer/episodes/", viewer_api.episodes, name="viewer-episodes"),
+    path("api/viewer/episodes/<str:workflow_run_id>/", viewer_api.episode_detail, name="viewer-episode-detail"),
+    path("api/viewer/skills/<str:skill_id>/", viewer_api.skill_detail, name="viewer-skill-detail"),
+    path("api/viewer/wiki-pages/", viewer_api.wiki_pages, name="viewer-wiki-pages"),
+    path(
+        "api/viewer/wiki-pages/<str:wiki_id>/<path:page_path>/",
+        viewer_api.wiki_page_detail,
+        name="viewer-wiki-page-detail",
+    ),
+    path("api/viewer/artifacts/<path:artifact_id>/", viewer_api.artifact_detail, name="viewer-artifact-detail"),
+    path("api/viewer/datasets/<str:dataset_id>/", viewer_api.dataset_detail, name="viewer-dataset-detail"),
+    path(
+        "api/viewer/calculations/<str:calculation_run_id>/",
+        viewer_api.calculation_detail,
+        name="viewer-calculation-detail",
+    ),
+    path("api/", api.urls),
+    path("favicon.ico", RedirectView.as_view(url=static("tradingcodex_admin/favicon.svg"), permanent=False)),
+    path("", web.spa_index, name="web-spa"),
+]
